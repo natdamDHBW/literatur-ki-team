@@ -76,7 +76,6 @@ header.top {
 header.top h1 { font: 600 1.15rem/1.2 var(--sans); margin: 0; }
 .wrap { max-width: 1200px; margin-inline: auto; }
 .topinner { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1.5rem; }
-html, body { overflow-x: hidden; }
 .entry .title, #detail h2, .entry .snippet, #detail .links a { overflow-wrap: anywhere; }
 header.top .linkbtn { color: var(--band-ink); }
 header.top .linkbtn:hover { opacity: .85; }
@@ -107,6 +106,16 @@ main {
   #detail:not(.open) { display: none; }
   body.detail-open #listcol { display: none; }
 }
+body.compact main { max-width: none; margin: 0; grid-template-columns: minmax(0, 40rem); justify-content: start; padding-left: 1rem; padding-right: 1rem; }
+body.compact .summary { max-width: 42rem; margin: 0; padding-left: 1rem; padding-right: 1rem; font-size: 1.1rem; }
+body.compact header.top { padding-left: 1rem; padding-right: 1rem; }
+body.compact .topinner { max-width: 40rem; margin: 0; }
+body.compact #detail:not(.open) { display: none; }
+body.compact.detail-open #listcol { display: none; }
+body.compact #detail { position: static; max-height: none; }
+body.compact .back { display: inline; }
+#detail:focus { outline: none; }
+body.compact #setup { margin: 1.5rem 0; padding: 0 1rem; }
 
 .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; overflow-x: auto; }
 .tabs button {
@@ -259,6 +268,7 @@ details.autotags summary { cursor: pointer; font-size: .85rem; color: var(--mute
       <h1>Literatur KI-Team</h1>
       <div class="who">
         <span id="whoami"></span>
+        <button class="linkbtn" id="viewbtn" type="button" aria-pressed="false">Schmale Ansicht</button>
         <button class="linkbtn" id="refreshbtn" type="button">Aktualisieren</button>
         <button class="linkbtn" id="logoutbtn" type="button">Abmelden</button>
       </div>
@@ -294,6 +304,7 @@ const API = "https://api.zotero.org";
 const BASE = API + "/groups/" + GROUP_ID;
 const COMMENT_TAG = "Kommentar";
 const STORE_KEY = "lesekreis.key";
+const VIEW_KEY = "lesekreis.view";
 const FIRST_VISIT_DAYS = 14;
 
 /* ---------- Zustand ---------- */
@@ -604,7 +615,7 @@ function renderToolbar() {
       renderEntries();
     } }, input, el("button", { class: "btn", type: "submit" }, "Suchen"));
     tb.append(form);
-    setTimeout(() => input.focus(), 0);
+    setTimeout(() => input.focus({ preventScroll: true }), 0);
   }
 }
 
@@ -708,8 +719,8 @@ async function openDetail(key, focus = true) {
   }
   if (state.selected !== key) return;
   renderDetail(key, children);
-  if (focus) d.focus({ preventScroll: window.innerWidth > 1150 });
-  if (window.innerWidth <= 1150) window.scrollTo(0, 0);
+  if (focus) d.focus({ preventScroll: true });
+  if (isNarrow()) window.scrollTo(0, 0);
 }
 
 function backButton() {
@@ -777,7 +788,7 @@ function composeBox(key) {
   const form = el("form", { class: "compose", onsubmit: async e => {
     e.preventDefault();
     const text = ta.value.trim();
-    if (!text) { msg.textContent = "Schreib zuerst einen Kommentar."; ta.focus(); return; }
+    if (!text) { msg.textContent = "Schreib zuerst einen Kommentar."; ta.focus({ preventScroll: true }); return; }
     btn.disabled = true; msg.textContent = "Speichere …";
     try {
       const note = await saveComment(key, text);
@@ -853,7 +864,7 @@ function showSetup(message) {
   $("setup").classList.remove("hidden");
   $("setupmsg").textContent = message || "";
   $("keyinput").value = "";
-  $("keyinput").focus();
+  $("keyinput").focus({ preventScroll: true });
 }
 
 async function showApp() {
@@ -885,6 +896,29 @@ $("logoutbtn").addEventListener("click", () => {
   showSetup("Du bist abgemeldet. Der Schlüssel wurde aus diesem Browser gelöscht.");
 });
 $("refreshbtn").addEventListener("click", () => loadAll());
+
+/* ---------- Schmale Ansicht ----------
+   In eingebetteten Ansichten (z. B. Teams-Registerkarte) meldet der Browser nicht immer die
+   sichtbare Breite. Dort startet das Dashboard deshalb schmal; die Wahl lässt sich umschalten
+   und wird im Browser gemerkt. */
+function isNarrow() { return document.body.classList.contains("compact") || window.innerWidth <= 1150; }
+function applyView(compact) {
+  document.body.classList.toggle("compact", compact);
+  const b = $("viewbtn");
+  b.textContent = compact ? "Breite Ansicht" : "Schmale Ansicht";
+  b.setAttribute("aria-pressed", String(compact));
+}
+(function initView() {
+  let embedded = false;
+  try { embedded = window.self !== window.top; } catch (e) { embedded = true; }
+  const saved = storeGet("localStorage", VIEW_KEY);
+  applyView(saved ? saved === "compact" : embedded);
+})();
+$("viewbtn").addEventListener("click", () => {
+  const compact = !document.body.classList.contains("compact");
+  applyView(compact);
+  storeSet("localStorage", VIEW_KEY, compact ? "compact" : "wide");
+});
 $("tab-items").addEventListener("click", () => setTab("items"));
 $("tab-feed").addEventListener("click", () => setTab("feed"));
 $("tab-search").addEventListener("click", () => setTab("search"));
