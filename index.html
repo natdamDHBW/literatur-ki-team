@@ -92,7 +92,7 @@ header.top .who { color: var(--band-ink); font-size: .9rem; display: flex; gap: 
 
 /* Hauptbereich */
 main {
-  max-width: 1400px; margin: 0;
+  max-width: none; margin: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 1.5rem;
@@ -113,10 +113,10 @@ body.compact.detail-open #listcol { display: none; }
 body.compact #detail { position: static; max-height: none; }
 body.compact .back { display: inline; }
 #detail:focus { outline: none; }
-.diag { color: var(--muted); font-size: .8rem; padding: 0 1rem 1.5rem; margin: 0; }
+.diag { color: var(--muted); font-size: .8rem; padding: 0 clamp(1rem, 3vw, 2.5rem) 1.5rem; margin: 0; }
 body.compact #setup { margin: 1.5rem 0; padding: 0 1rem; }
 
-.tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; overflow-x: auto; }
+.tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; overflow-x: auto; overflow-y: hidden; }
 .tabs button {
   background: none; border: 0; padding: .6rem .9rem; cursor: pointer; color: var(--muted);
   border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; font-weight: 500;
@@ -206,7 +206,14 @@ ol.thread li:last-child { border-bottom: 0; }
 .facets .coll { display: block; }
 .chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
 .chip { border-radius: 999px; padding: .05rem .6rem; font-size: .8rem; color: var(--mark-ink); background: var(--mark-soft); }
-.chip.coll { color: var(--coll-ink); background: var(--coll-bg); border-radius: 4px; }
+.chip.coll { color: var(--coll-ink); background: var(--coll-bg); border-radius: 4px; border: 0; font: inherit; font-size: .8rem; cursor: pointer; }
+.chip.coll:hover { text-decoration: underline; text-underline-offset: 2px; }
+li.card { cursor: pointer; }
+.titlebtn { background: none; border: 0; padding: 0; margin: 0; text-align: left; cursor: pointer; color: inherit; }
+li.card:hover .entry { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.collhead { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; width: 100%; }
+.collhead .chip.coll { font-size: .95rem; padding: .2rem .7rem; cursor: default; }
+.collhead .chip.coll:hover { text-decoration: none; }
 .chip.auto { color: var(--muted); background: none; border: 1px dashed var(--line); }
 #detail .facets { font-size: .92rem; margin: .25rem 0 .75rem; }
 details.autotags summary { cursor: pointer; font-size: .85rem; color: var(--muted); margin-top: .4rem; }
@@ -303,6 +310,7 @@ const GROUP_ID = "5817220";
 const API = "https://api.zotero.org";
 const BASE = API + "/groups/" + GROUP_ID;
 const COMMENT_TAG = "Kommentar";
+const APP_VERSION = "9 (20.11.2026)";
 const STORE_KEY = "lesekreis.key";
 const VIEW_KEY = "lesekreis.view";
 const FIRST_VISIT_DAYS = 14;
@@ -321,6 +329,7 @@ const state = {
   feed: [], feedStart: 0, feedTotal: 0,
   notesByParent: new Map(),  // Notizen aus dem Feed, nach Eintrag gruppiert
   searchList: [], searchQuery: "",
+  collKey: null, collList: [], collLoading: false, collError: null,
   filter: "all",             // all | comments
   showAnno: true,
   hideOwn: false,
@@ -444,7 +453,7 @@ function collectionPath(key) {
 }
 function itemCollections(it) {
   return (it.data.collections || [])
-    .map(k => ({ path: collectionPath(k), color: state.collColor.get(topCollection(k)) }))
+    .map(k => ({ key: k, path: collectionPath(k), color: state.collColor.get(topCollection(k)) }))
     .filter(c => c.path)
     .sort((a, b) => a.path.localeCompare(b.path, "de"));
 }
@@ -457,7 +466,7 @@ function facets(it, withAuto) {
   const auto = withAuto ? autoTags(it) : [];
   if (!colls.length && !tags.length && !auto.length) return null;
   return el("span", { class: "facets" },
-    colls.length ? el("span", { class: "chips", "aria-label": colls.length === 1 ? "Sammlung" : "Sammlungen" }, colls.map(c => { const s = el("span", { class: "chip coll", title: "Sammlung" }, c.path); if (c.color) s.style.background = c.color; return s; })) : null,
+    colls.length ? el("span", { class: "chips", "aria-label": colls.length === 1 ? "Sammlung" : "Sammlungen" }, colls.map(c => { const s = el("button", { type: "button", class: "chip coll", title: "Alle Einträge dieser Sammlung zeigen", onclick: e => { e.stopPropagation(); showCollection(c.key); } }, c.path); if (c.color) s.style.background = c.color; return s; })) : null,
     tags.length ? el("span", { class: "chips", "aria-label": "Tags" }, tags.map(tg => el("span", { class: "chip", title: "Tag" }, tg))) : null,
     auto.length ? el("details", { class: "autotags" }, el("summary", {}, "Automatische Tags aus dem Import (" + auto.length + ")"),
       el("span", { class: "chips" }, auto.map(tg => el("span", { class: "chip auto" }, tg)))) : null);
@@ -580,6 +589,44 @@ function renderSummary() {
 }
 
 /* ---------- Anzeige: Listen ---------- */
+async function showCollection(key) {
+  state.tab = "collection";
+  state.collKey = key;
+  state.collList = []; state.collError = null; state.collLoading = true;
+  ["items", "feed", "search"].forEach(t => $("tab-" + t).setAttribute("aria-selected", "false"));
+  if (isNarrow()) {
+    document.body.classList.remove("detail-open");
+    $("detail").classList.remove("open");
+    window.scrollTo(0, 0);
+  }
+  renderList();
+  try {
+    state.collList = await loadCollectionItems(key);
+  } catch (e) { state.collError = e.message; }
+  state.collLoading = false;
+  if (state.tab === "collection" && state.collKey === key) renderEntries();
+}
+
+// Einträge einer Sammlung einschließlich aller Untersammlungen
+async function loadCollectionItems(key) {
+  const keys = [key];
+  for (let i = 0; i < keys.length; i++) {
+    for (const [k, c] of state.collections) if (c.parent === keys[i] && !keys.includes(k)) keys.push(k);
+  }
+  const found = new Map();
+  for (const k of keys) {
+    let start = 0, total = 1, pages = 0;
+    while (start < total && pages++ < 10) {
+      const { data, headers } = await api("/groups/" + GROUP_ID + "/collections/" + k + "/items/top?limit=100&itemType=-attachment&start=" + start);
+      data.forEach(it => { state.items.set(it.key, it); if (isLiterature(it)) found.set(it.key, it); });
+      total = parseInt(headers.get("Total-Results") || "0", 10);
+      start += data.length;
+      if (!data.length) break;
+    }
+  }
+  return [...found.values()].sort((a, b) => new Date(b.data.dateAdded) - new Date(a.data.dateAdded));
+}
+
 function setTab(tab) {
   state.tab = tab;
   ["items", "feed", "search"].forEach(t => $("tab-" + t).setAttribute("aria-selected", String(t === tab)));
@@ -589,6 +636,18 @@ function setTab(tab) {
 function renderToolbar() {
   const tb = $("toolbar");
   tb.textContent = "";
+  if (state.tab === "collection") {
+    const c = state.collections.get(state.collKey);
+    const chip = el("span", { class: "chip coll" }, collectionPath(state.collKey) || (c ? c.name : "Sammlung"));
+    const color = state.collColor.get(topCollection(state.collKey));
+    if (color) chip.style.background = color;
+    const subs = [...state.collections.values()].some(x => x.parent === state.collKey);
+    tb.append(el("div", { class: "collhead" },
+      el("span", {}, "Sammlung"), chip,
+      el("button", { class: "linkbtn", type: "button", onclick: () => setTab("items") }, "Zurück zu „Neue Literatur“")),
+      ...(subs ? [el("span", {}, "Einträge aus Untersammlungen sind enthalten.")] : []));
+    return;
+  }
   if (state.tab === "items") {
     tb.append(el("label", {}, el("input", { type: "checkbox", checked: state.hideOwn, onchange: e => { state.hideOwn = e.target.checked; renderList(); } }), "Eigene Einträge ausblenden"));
   } else if (state.tab === "feed") {
@@ -640,6 +699,15 @@ function renderEntries() {
     return;
   }
 
+  if (state.tab === "collection") {
+    if (state.collLoading) { area.append(el("p", { class: "status" }, "Lade Einträge der Sammlung …")); return; }
+    if (state.collError) { area.append(el("p", { class: "status error" }, state.collError)); return; }
+    if (!state.collList.length) { area.append(el("p", { class: "empty" }, "In dieser Sammlung liegen noch keine Einträge.")); return; }
+    area.append(el("p", { class: "status", style: "padding:.25rem 0 .75rem" }, state.collList.length === 1 ? "1 Eintrag, neueste zuerst" : state.collList.length + " Einträge, neueste zuerst"));
+    area.append(el("ol", { class: "entries" }, state.collList.map(itemEntry)));
+    return;
+  }
+
   let list = state.tab === "items" ? state.newList : state.searchList;
   if (state.tab === "items" && state.hideOwn) list = list.filter(it => !isMine(it));
   if (state.tab === "search" && !state.searchQuery) { area.append(el("p", { class: "empty" }, "Suche nach einem Eintrag, um ihn zu kommentieren, auch wenn er schon lange in der Gruppe ist.")); return; }
@@ -661,9 +729,10 @@ function itemEntry(it) {
   const fresh = isNew(it);
   const notes = state.notesByParent.get(it.key) || [];
   const last = notes[0];
-  return el("li", { class: [fresh ? "is-new" : "", state.selected === it.key ? "selected" : ""].join(" ").trim() },
-    el("button", { class: "entry", type: "button", onclick: () => openDetail(it.key) },
-      el("span", { class: "title" }, itemTitle(it)),
+  return el("li", { class: ["card", fresh ? "is-new" : "", state.selected === it.key ? "selected" : ""].join(" ").trim(),
+      onclick: e => { if (!e.target.closest("button.chip")) openDetail(it.key); } },
+    el("div", { class: "entry" },
+      el("button", { class: "title titlebtn", type: "button" }, itemTitle(it)),
       el("span", { class: "meta" }, itemMeta(it)),
       el("span", { class: "by" }, fresh ? el("span", { class: "newtag" }, "neu") : null,
         "Hinzugefügt von ", el("strong", {}, userName(creatorOf(it))), ", " + when(it.data.dateAdded)),
@@ -746,7 +815,7 @@ function renderDetail(key, children) {
     .filter(c => c.data.itemType === "note" || c.data.itemType === "annotation")
     .sort((a, b) => new Date(a.data.dateAdded) - new Date(b.data.dateAdded));
 
-  d.append(
+  d.append(...[
     backButton(),
     el("h2", {}, itemTitle(it)),
     el("div", { class: "meta" }, itemMeta(it)),
@@ -757,7 +826,7 @@ function renderDetail(key, children) {
     el("h3", {}, thread.length ? "Kommentare und Notizen (" + thread.length + ")" : "Kommentare und Notizen"),
     thread.length ? el("ol", { class: "thread" }, thread.map(threadItem)) : el("p", { class: "empty", style: "padding:.25rem 0" }, "Noch nichts notiert."),
     composeBox(key)
-  );
+  ].filter(Boolean));
 }
 
 function threadItem(c) {
@@ -911,7 +980,7 @@ function applyView(compact) {
 function updateDiag() {
   let embedded = false;
   try { embedded = window.self !== window.top; } catch (e) { embedded = true; }
-  $("diag").textContent = "Technische Angabe: Anzeigebreite laut Browser " + window.innerWidth + " px, eingebettet: " + (embedded ? "ja" : "nein") + ".";
+  $("diag").textContent = "Version " + APP_VERSION + ". Technische Angabe: Anzeigebreite laut Browser " + window.innerWidth + " px, eingebettet: " + (embedded ? "ja" : "nein") + ".";
 }
 window.addEventListener("resize", updateDiag);
 (function initView() {
