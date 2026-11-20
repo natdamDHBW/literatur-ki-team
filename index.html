@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Literatur KI-Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* DHBW-Farben */
+  --red: #e30613;
+  --darkred: #aa050e;
+  --bg: #f2f4f5;
+  --surface: #FFFFFF;
+  --ink: #293743;
+  --muted: #5d686e;
+  --line: #d5dadd;
+  --mark: #e30613;
+  --mark-soft: #fce8e9;
+  --mark-ink: #aa050e;
+  --action: #e30613;
+  --action-hover: #aa050e;
+  --action-ink: #FFFFFF;
+  --link: #aa050e;
+  --band: #e30613;
+  --band-ink: #FFFFFF;
+  --coll-bg: #293743;
+  --coll-ink: #FFFFFF;
+  --error: #aa050e;
+  --serif: "Literata", Georgia, "Times New Roman", serif;
+  --sans: "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161d23;
+    --surface: #212a32;
+    --ink: #E8ECEE;
+    --muted: #9ba5aa;
+    --line: #36424c;
+    --mark: #ff3341;
+    --mark-soft: #4a1c20;
+    --mark-ink: #ffb3b8;
+    --action: #e30613;
+    --action-hover: #ff3341;
+    --action-ink: #FFFFFF;
+    --link: #ff8a92;
+    --band: #b8050f;
+    --band-ink: #FFFFFF;
+    --coll-bg: #5d686e;
+    --coll-ink: #FFFFFF;
+    --error: #ff8a92;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 var(--sans);
+}
+button, input, textarea { font: inherit; color: inherit; }
+a { color: var(--link); }
+a:hover { color: var(--action-hover); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.hidden { display: none !important; }
+
+/* Kopf */
+header.top {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: .5rem 1.5rem;
+  padding: 1rem clamp(1rem, 3vw, 2.5rem);
+  background: var(--band); color: var(--band-ink);
+}
+header.top h1 { font: 600 1.15rem/1.2 var(--sans); margin: 0; }
+header.top .linkbtn { color: var(--band-ink); }
+header.top .linkbtn:hover { opacity: .85; }
+header.top .who { color: var(--band-ink); font-size: .9rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--link); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+.summary {
+  padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 1.25rem;
+  font: 400 clamp(1.35rem, 2.6vw, 1.9rem)/1.3 var(--serif);
+  max-width: 56rem;
+  margin: 0;
+}
+.summary .count { color: var(--mark-ink); border-bottom: 4px solid var(--mark); }
+
+/* Hauptbereich */
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 1.5rem;
+  padding: 0 clamp(1rem, 3vw, 2.5rem) 3rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; }
+  #detail:not(.open) { display: none; }
+  body.detail-open #listcol { display: none; }
+}
+
+.tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; overflow-x: auto; }
+.tabs button {
+  background: none; border: 0; padding: .6rem .9rem; cursor: pointer; color: var(--muted);
+  border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; font-weight: 500;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--red); }
+.tabs button:hover { color: var(--ink); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-bottom: .75rem; color: var(--muted); font-size: .9rem; }
+.toolbar label { display: inline-flex; gap: .35rem; align-items: center; cursor: pointer; }
+.toolbar input[type="search"] {
+  flex: 1 1 14rem; padding: .55rem .75rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+}
+
+/* Einträge */
+ol.entries { list-style: none; margin: 0; padding: 0; }
+ol.entries > li { position: relative; border-bottom: 1px solid var(--line); }
+.entry {
+  display: block; width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
+  padding: .9rem 1rem .9rem 1.4rem;
+}
+.entry:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+li.selected .entry { background: var(--surface); }
+li.is-new::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--mark);
+}
+.entry .title { font: 600 1.05rem/1.35 var(--serif); display: block; }
+.entry .meta { color: var(--muted); font-size: .88rem; display: block; margin-top: .15rem; }
+.entry .by { font-size: .88rem; display: block; margin-top: .35rem; }
+.entry .newtag { background: var(--mark); color: #FFFFFF; border-radius: 3px; padding: 0 .35rem; font-size: .8rem; font-weight: 600; margin-right: .4rem; }
+.entry .snippet {
+  display: block; margin-top: .45rem; font-size: .92rem; color: var(--ink);
+  border-left: 2px solid var(--line); padding-left: .65rem;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; white-space: pre-line;
+}
+.kind { font-size: .8rem; color: var(--muted); }
+
+.more { margin: 1rem 0; }
+.btn {
+  background: var(--action); color: var(--action-ink); border: 0; border-radius: 6px;
+  padding: .55rem 1rem; cursor: pointer; font-weight: 600;
+}
+.btn:hover:not(:disabled) { background: var(--action-hover); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.secondary { background: none; color: var(--link); border: 1px solid var(--link); }
+.btn.secondary:hover:not(:disabled) { background: var(--mark-soft); }
+
+.empty, .status { color: var(--muted); padding: 1.5rem 0; }
+.error { color: var(--error); }
+
+/* Detail */
+#detail {
+  background: var(--surface); border: 1px solid var(--line); border-top: 5px solid var(--red); border-radius: 10px;
+  padding: clamp(1rem, 2.5vw, 1.75rem);
+  position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto;
+}
+@media (max-width: 900px) { #detail { position: static; max-height: none; } }
+#detail h2 { font: 600 1.4rem/1.3 var(--serif); margin: 0 0 .4rem; }
+#detail .meta { color: var(--muted); font-size: .92rem; }
+#detail .links { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin: .75rem 0; font-size: .92rem; }
+details.abstract { margin: .5rem 0 1rem; font: 400 .97rem/1.6 var(--serif); }
+details.abstract summary { cursor: pointer; font: 500 .9rem var(--sans); color: var(--muted); }
+#detail h3 { font: 600 1rem var(--sans); margin: 1.5rem 0 .5rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.back { margin-bottom: .75rem; }
+@media (min-width: 901px) { .back { display: none; } }
+
+ol.thread { list-style: none; margin: 0; padding: 0; }
+ol.thread li { padding: .75rem 0; border-bottom: 1px solid var(--line); }
+ol.thread li:last-child { border-bottom: 0; }
+.thread .head { font-size: .88rem; color: var(--muted); }
+.thread .head strong { color: var(--ink); font-weight: 600; }
+.thread .body { white-space: pre-line; margin-top: .3rem; font: 400 .98rem/1.6 var(--serif); overflow-wrap: anywhere; }
+.thread blockquote {
+  margin: .4rem 0 0; padding: .1rem 0 .1rem .75rem; border-left: 4px solid var(--q, var(--line));
+  font: italic 400 .95rem/1.55 var(--serif);
+}
+
+.compose { margin-top: 1rem; }
+.compose label { color: var(--mark-ink); font-weight: 600; display: block; margin-bottom: .35rem; }
+.compose textarea {
+  width: 100%; min-height: 7rem; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); resize: vertical; font: 400 1rem/1.5 var(--serif);
+}
+.compose .row { display: flex; gap: 1rem; align-items: center; margin-top: .5rem; flex-wrap: wrap; }
+.compose .hint { color: var(--muted); font-size: .85rem; }
+
+.facets { display: block; margin-top: .45rem; font-size: .85rem; color: var(--muted); }
+.facets .coll { display: block; }
+.chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
+.chip { border-radius: 999px; padding: .05rem .6rem; font-size: .8rem; color: var(--mark-ink); background: var(--mark-soft); }
+.chip.coll { color: var(--coll-ink); background: var(--coll-bg); border-radius: 4px; }
+.chip.auto { color: var(--muted); background: none; border: 1px dashed var(--line); }
+#detail .facets { font-size: .92rem; margin: .25rem 0 .75rem; }
+details.autotags summary { cursor: pointer; font-size: .85rem; color: var(--muted); margin-top: .4rem; }
+.placeholder { color: var(--muted); font: 400 1.05rem/1.6 var(--serif); }
+
+/* Verbinden */
+#setup { max-width: 38rem; margin: 2rem auto; padding: 0 1rem; }
+#setup h1 { font: 600 1.8rem/1.25 var(--serif); margin: 0 0 1rem; padding-top: .75rem; border-top: 6px solid var(--red); display: inline-block; }
+#setup ol { padding-left: 1.25rem; }
+#setup ol li { margin-bottom: .5rem; }
+#setup .field { margin: 1.25rem 0 .75rem; }
+#setup .field label { display: block; font-weight: 600; margin-bottom: .35rem; }
+#setup .field input {
+  width: 100%; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+  font-family: ui-monospace, Consolas, monospace;
+}
+#setup .check { display: flex; gap: .5rem; align-items: flex-start; margin-bottom: 1rem; }
+#setup .note { color: var(--muted); font-size: .9rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  li.is-new::before { animation: grow .5s ease-out both; transform-origin: top; }
+  @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+}
+</style>
+</head>
+<body>
+
+<!-- Verbinden -->
+<section id="setup" class="hidden" aria-labelledby="setup-title">
+  <h1 id="setup-title">Literatur KI-Team</h1>
+  <p>Dieses Dashboard zeigt neue Literatur und Kommentare aus eurer Zotero-Gruppe. Zum Verbinden brauchst du einen persönlichen Zotero-Schlüssel. Er wird nur in deinem Browser gespeichert, nicht in dieser Datei.</p>
+  <ol>
+    <li>Öffne <a href="https://www.zotero.org/settings/keys/new" target="_blank" rel="noopener">zotero.org/settings/keys/new</a> und melde dich an.</li>
+    <li>Gib einen Namen ein, z. B. „Literatur KI-Team“.</li>
+    <li>Lass bei „Personal Library“ alle Häkchen leer.</li>
+    <li>Wähle bei „Default Group Permissions“ die Option „Read/Write“ (oder unter „Per Group Permissions“ nur eure Arbeitsgruppe mit „Read/Write“).</li>
+    <li>Klicke auf „Save Key“ und kopiere den angezeigten Schlüssel hierher.</li>
+  </ol>
+  <form id="setupform" novalidate>
+    <div class="field">
+      <label for="keyinput">Dein Zotero-Schlüssel</label>
+      <input id="keyinput" type="password" autocomplete="off" spellcheck="false" required>
+    </div>
+    <div class="check">
+      <input id="remember" type="checkbox" checked>
+      <label for="remember">Auf diesem Gerät merken (auf gemeinsam genutzten Rechnern abwählen)</label>
+    </div>
+    <button class="btn" type="submit" id="connectbtn">Verbinden</button>
+    <p id="setupmsg" role="alert" class="error"></p>
+  </form>
+  <p class="note">Trage den Schlüssel nur hier ein, niemals in die Datei selbst oder in einen Chat.</p>
+</section>
+
+<!-- App -->
+<div id="app" class="hidden">
+  <header class="top">
+    <h1>Literatur KI-Team</h1>
+    <div class="who">
+      <span id="whoami"></span>
+      <button class="linkbtn" id="refreshbtn" type="button">Aktualisieren</button>
+      <button class="linkbtn" id="logoutbtn" type="button">Abmelden</button>
+    </div>
+  </header>
+  <p class="summary" id="summary" aria-live="polite">Lade Daten aus Zotero …</p>
+
+  <main>
+    <section id="listcol" aria-label="Übersicht">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-items" aria-selected="true" aria-controls="panel">Neue Literatur</button>
+        <button role="tab" id="tab-feed" aria-selected="false" aria-controls="panel">Neueste Kommentare</button>
+        <button role="tab" id="tab-search" aria-selected="false" aria-controls="panel">Suchen</button>
+      </div>
+      <div id="panel" role="tabpanel">
+        <div class="toolbar" id="toolbar"></div>
+        <div id="listarea"></div>
+      </div>
+    </section>
+
+    <section id="detail" aria-label="Details" tabindex="-1">
+      <p class="placeholder">Wähle links einen Eintrag, um alle Kommentare zu lesen und selbst etwas zu schreiben.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- Einstellungen ---------- */
+const GROUP_ID = "5817220";
+const API = "https://api.zotero.org";
+const BASE = API + "/groups/" + GROUP_ID;
+const COMMENT_TAG = "Kommentar";
+const STORE_KEY = "lesekreis.key";
+const FIRST_VISIT_DAYS = 14;
+
+/* ---------- Zustand ---------- */
+const state = {
+  key: null,
+  canWrite: false,
+  me: { id: null, name: "" },
+  prevVisit: null,
+  tab: "items",
+  items: new Map(),          // alle geladenen Einträge nach Schlüssel
+  collections: new Map(),    // Sammlungen nach Schlüssel
+  collColor: new Map(),      // Farbe je Hauptsammlung
+  newList: [], newStart: 0, newTotal: 0,
+  feed: [], feedStart: 0, feedTotal: 0,
+  notesByParent: new Map(),  // Notizen aus dem Feed, nach Eintrag gruppiert
+  searchList: [], searchQuery: "",
+  filter: "all",             // all | comments
+  showAnno: true,
+  hideOwn: false,
+  selected: null,
+  loading: false
+};
+
+/* ---------- Speicher (immer mit try/catch) ---------- */
+function storeGet(area, k) { try { return window[area].getItem(k); } catch (e) { return null; } }
+function storeSet(area, k, v) { try { window[area].setItem(k, v); } catch (e) {} }
+function storeDel(area, k) { try { window[area].removeItem(k); } catch (e) {} }
+
+/* ---------- API ---------- */
+class ApiError extends Error { constructor(msg, status) { super(msg); this.status = status; } }
+
+async function api(path, opts = {}, retry = 1) {
+  const url = path.startsWith("http") ? path : API + path;
+  let res;
+  try {
+    res = await fetch(url, {
+      method: opts.method || "GET",
+      headers: Object.assign({
+        "Zotero-API-Version": "3",
+        "Zotero-API-Key": state.key
+      }, opts.headers || {}),
+      body: opts.body
+    });
+  } catch (e) {
+    throw new ApiError("Zotero ist gerade nicht erreichbar. Prüfe die Internetverbindung und versuche es mit „Aktualisieren“ erneut.", 0);
+  }
+  if ((res.status === 429 || res.status === 503) && retry > 0) {
+    const wait = Math.min(parseInt(res.headers.get("Retry-After") || res.headers.get("Backoff") || "5", 10), 30);
+    await new Promise(r => setTimeout(r, wait * 1000));
+    return api(path, opts, retry - 1);
+  }
+  if (!res.ok) {
+    const msgs = {
+      400: "Zotero hat die Anfrage abgelehnt.",
+      403: "Der Schlüssel hat keinen Zugriff auf die Gruppe oder darf dort nicht schreiben. Prüfe die Rechte des Schlüssels auf zotero.org.",
+      404: "Gruppe oder Eintrag nicht gefunden.",
+      412: "Der Eintrag wurde inzwischen geändert. Bitte aktualisieren.",
+      429: "Zu viele Anfragen an Zotero. Warte einen Moment und versuche es erneut."
+    };
+    throw new ApiError(msgs[res.status] || ("Zotero meldet Fehler " + res.status + "."), res.status);
+  }
+  const data = res.status === 204 ? null : await res.json();
+  return { data, headers: res.headers };
+}
+
+async function fetchByKeys(keys) {
+  const missing = [...new Set(keys)].filter(k => k && !state.items.has(k));
+  for (let i = 0; i < missing.length; i += 50) {
+    const chunk = missing.slice(i, i + 50);
+    const { data } = await api("/groups/" + GROUP_ID + "/items?itemKey=" + chunk.join(",") + "&limit=50");
+    data.forEach(it => state.items.set(it.key, it));
+  }
+}
+
+/* ---------- Hilfsfunktionen ---------- */
+const $ = id => document.getElementById(id);
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v;
+    else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? "" : v);
+  }
+  kids.flat().forEach(c => { if (c != null && c !== false) n.append(c.nodeType ? c : String(c)); });
+  return n;
+}
+function userName(u) { return u ? (u.name || u.username || "Unbekannt") : "Unbekannt"; }
+function creatorOf(it) { return it.meta && it.meta.createdByUser; }
+function isMine(it) { const u = creatorOf(it); return !!(u && String(u.id) === String(state.me.id)); }
+function isNew(it) { return state.prevVisit && new Date(it.data.dateAdded) > state.prevVisit && !isMine(it); }
+
+const fmtDate = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", year: "numeric" });
+const fmtDateTime = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+function when(iso) {
+  const d = new Date(iso), now = new Date();
+  const days = Math.floor((now - d) / 864e5);
+  if (days < 1 && d.getDate() === now.getDate()) return "heute, " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr";
+  if (days < 2) return "gestern";
+  if (days < 7) return "vor " + days + " Tagen";
+  return fmtDate.format(d);
+}
+
+// Notiz-HTML sicher in Text umwandeln (kein fremdes HTML im Dashboard)
+function noteText(html) {
+  if (!html) return "";
+  const marked = html.replace(/<(br|\/p|\/li|\/h[1-6]|\/div|\/blockquote|\/tr)\b[^>]*>/gi, "$&\n");
+  const doc = new DOMParser().parseFromString(marked, "text/html");
+  return (doc.body.textContent || "").replace(/\u00a0/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+}
+function isComment(note) {
+  const tags = (note.data.tags || []).map(t => t.tag.toLowerCase());
+  return tags.includes(COMMENT_TAG.toLowerCase()) || noteText(note.data.note).startsWith("💬");
+}
+function itemTitle(it) {
+  if (!it) return "Unbekannter Eintrag";
+  return it.data.title || it.data.caseName || it.data.nameOfAct || it.data.subject || "Ohne Titel";
+}
+function itemYear(it) { return (it.meta && it.meta.parsedDate) ? it.meta.parsedDate.slice(0, 4) : ""; }
+function itemMeta(it) {
+  const parts = [];
+  if (it.meta && it.meta.creatorSummary) parts.push(it.meta.creatorSummary);
+  const y = itemYear(it); if (y) parts.push("(" + y + ")");
+  const pub = it.data.publicationTitle || it.data.bookTitle || it.data.publisher || it.data.websiteTitle;
+  return parts.join(" ") + (pub ? ". " + pub : "");
+}
+function collectionPath(key) {
+  const names = [];
+  let k = key, guard = 0;
+  while (k && state.collections.has(k) && guard++ < 10) {
+    const c = state.collections.get(k);
+    names.unshift(c.name);
+    k = c.parent;
+  }
+  return names.join(" › ");
+}
+function itemCollections(it) {
+  return (it.data.collections || [])
+    .map(k => ({ path: collectionPath(k), color: state.collColor.get(topCollection(k)) }))
+    .filter(c => c.path)
+    .sort((a, b) => a.path.localeCompare(b.path, "de"));
+}
+// Typ 1 = automatisch beim Import vergebene Tags (z. B. Schlagwörter aus Datenbanken)
+function manualTags(it) { return (it.data.tags || []).filter(t => t.type !== 1).map(t => t.tag).sort((a, b) => a.localeCompare(b, "de")); }
+function autoTags(it) { return (it.data.tags || []).filter(t => t.type === 1).map(t => t.tag).sort((a, b) => a.localeCompare(b, "de")); }
+function facets(it, withAuto) {
+  const colls = itemCollections(it);
+  const tags = manualTags(it);
+  const auto = withAuto ? autoTags(it) : [];
+  if (!colls.length && !tags.length && !auto.length) return null;
+  return el("span", { class: "facets" },
+    colls.length ? el("span", { class: "chips", "aria-label": colls.length === 1 ? "Sammlung" : "Sammlungen" }, colls.map(c => { const s = el("span", { class: "chip coll", title: "Sammlung" }, c.path); if (c.color) s.style.background = c.color; return s; })) : null,
+    tags.length ? el("span", { class: "chips", "aria-label": "Tags" }, tags.map(tg => el("span", { class: "chip", title: "Tag" }, tg))) : null,
+    auto.length ? el("details", { class: "autotags" }, el("summary", {}, "Automatische Tags aus dem Import (" + auto.length + ")"),
+      el("span", { class: "chips" }, auto.map(tg => el("span", { class: "chip auto" }, tg)))) : null);
+}
+function isLiterature(it) { return !["note", "attachment", "annotation"].includes(it.data.itemType); }
+
+// Für Notizen und Anmerkungen den zugehörigen Literatureintrag finden
+function paperKeyOf(child) {
+  if (child.data.itemType === "annotation") {
+    const att = state.items.get(child.data.parentItem);
+    return att ? att.data.parentItem : null;
+  }
+  return child.data.parentItem || null;
+}
+
+/* ---------- Laden ---------- */
+async function loadCollections() {
+  const map = new Map();
+  let start = 0, total = 1;
+  while (start < total) {
+    const { data, headers } = await api("/groups/" + GROUP_ID + "/collections?limit=100&start=" + start);
+    data.forEach(c => map.set(c.key, { name: c.data.name, parent: c.data.parentCollection || null }));
+    total = parseInt(headers.get("Total-Results") || "0", 10);
+    start += data.length;
+    if (!data.length) break;
+  }
+  state.collections = map;
+  assignCollectionColors();
+}
+
+// Farben für Hauptsammlungen (Kurse); Untersammlungen erben die Farbe ihres Kurses.
+// Alle Töne tragen weiße Schrift mit ausreichendem Kontrast. Rot ist für „neu“ und Tags reserviert.
+const COLL_COLORS = ["#1f5c99", "#00747a", "#6b3fa0", "#3d7a2a", "#8a5a00", "#8c2f6b", "#2e5e6e", "#4b5a9e", "#7a4b2a", "#293743"];
+function hashStr(s) { let h = 0; for (const ch of s) h = (h * 31 + ch.codePointAt(0)) >>> 0; return h; }
+function assignCollectionColors() {
+  const tops = [...state.collections.entries()].filter(([, c]) => !c.parent).map(([k]) => k).sort();
+  const used = new Set();
+  state.collColor = new Map();
+  tops.forEach(k => {
+    let i = hashStr(k) % COLL_COLORS.length, tries = 0;
+    while (used.has(i) && tries++ < COLL_COLORS.length) i = (i + 1) % COLL_COLORS.length;
+    used.add(i);
+    state.collColor.set(k, COLL_COLORS[i]);
+  });
+}
+function topCollection(key) {
+  let k = key, guard = 0;
+  while (k && state.collections.has(k) && state.collections.get(k).parent && guard++ < 10) k = state.collections.get(k).parent;
+  return k;
+}
+
+async function loadNew(append = false) {
+  const start = append ? state.newStart : 0;
+  const { data, headers } = await api("/groups/" + GROUP_ID + "/items/top?sort=dateAdded&direction=desc&limit=40&itemType=-attachment&start=" + start);
+  data.forEach(it => state.items.set(it.key, it));
+  const lit = data.filter(isLiterature);
+  state.newList = append ? state.newList.concat(lit) : lit;
+  state.newStart = start + data.length;
+  state.newTotal = parseInt(headers.get("Total-Results") || "0", 10);
+}
+
+async function loadFeed(append = false) {
+  const start = append ? state.feedStart : 0;
+  const type = state.showAnno ? "note || annotation" : "note";
+  const { data, headers } = await api("/groups/" + GROUP_ID + "/items?sort=dateAdded&direction=desc&limit=60&itemType=" + encodeURIComponent(type) + "&start=" + start);
+  data.forEach(it => state.items.set(it.key, it));
+  // Anhänge der Anmerkungen nachladen, dann die Literatureinträge
+  await fetchByKeys(data.filter(d => d.data.itemType === "annotation").map(d => d.data.parentItem));
+  await fetchByKeys(data.map(paperKeyOf));
+  state.feed = append ? state.feed.concat(data) : data;
+  state.feedStart = start + data.length;
+  state.feedTotal = parseInt(headers.get("Total-Results") || "0", 10);
+  rebuildNoteIndex();
+}
+
+function rebuildNoteIndex() {
+  state.notesByParent = new Map();
+  state.feed.filter(n => n.data.itemType === "note").forEach(n => {
+    const p = n.data.parentItem; if (!p) return;
+    if (!state.notesByParent.has(p)) state.notesByParent.set(p, []);
+    state.notesByParent.get(p).push(n);
+  });
+}
+
+async function loadAll() {
+  state.loading = true;
+  $("summary").textContent = "Lade Daten aus Zotero …";
+  try {
+    await Promise.all([loadNew(), loadFeed(), loadCollections()]);
+    renderSummary();
+  } catch (e) {
+    $("summary").textContent = e.message;
+    $("summary").classList.add("error");
+  }
+  state.loading = false;
+  renderList();
+  if (state.selected) openDetail(state.selected, false);
+}
+
+/* ---------- Anzeige: Kopfzeile ---------- */
+function renderSummary() {
+  const s = $("summary");
+  s.classList.remove("error");
+  s.textContent = "";
+  const newItems = state.newList.filter(isNew).length;
+  const newNotes = state.feed.filter(isNew).length;
+  const since = state.firstVisit
+    ? "In den letzten " + FIRST_VISIT_DAYS + " Tagen"
+    : "Seit deinem letzten Besuch (" + fmtDateTime.format(state.prevVisit) + " Uhr)";
+  if (!newItems && !newNotes) {
+    s.append(since + " ist nichts Neues von anderen dazugekommen.");
+    return;
+  }
+  const parts = [];
+  if (newItems) parts.push(el("span", { class: "count" }, newItems === 1 ? "ein neuer Eintrag" : newItems + " neue Einträge"));
+  if (newNotes) parts.push(el("span", { class: "count" }, newNotes === 1 ? "ein neuer Kommentar" : newNotes + " neue Kommentare"));
+  s.append(since + ": ", parts[0]);
+  if (parts[1]) s.append(" und ", parts[1]);
+  s.append(" von anderen.");
+}
+
+/* ---------- Anzeige: Listen ---------- */
+function setTab(tab) {
+  state.tab = tab;
+  ["items", "feed", "search"].forEach(t => $("tab-" + t).setAttribute("aria-selected", String(t === tab)));
+  renderList();
+}
+
+function renderToolbar() {
+  const tb = $("toolbar");
+  tb.textContent = "";
+  if (state.tab === "items") {
+    tb.append(el("label", {}, el("input", { type: "checkbox", checked: state.hideOwn, onchange: e => { state.hideOwn = e.target.checked; renderList(); } }), "Eigene Einträge ausblenden"));
+  } else if (state.tab === "feed") {
+    const f = el("label", {}, el("input", { type: "checkbox", checked: state.filter === "comments", onchange: e => { state.filter = e.target.checked ? "comments" : "all"; renderList(); } }), "Nur als Kommentar markierte Notizen");
+    const a = el("label", {}, el("input", { type: "checkbox", checked: state.showAnno, onchange: async e => {
+      state.showAnno = e.target.checked;
+      $("listarea").textContent = ""; $("listarea").append(el("p", { class: "status" }, "Lade …"));
+      try { await loadFeed(); } catch (err) { showListError(err); return; }
+      renderList();
+    } }), "PDF-Anmerkungen zeigen");
+    tb.append(f, a);
+  } else {
+    const input = el("input", { type: "search", placeholder: "Titel, Autor:in oder Jahr", "aria-label": "In der Gruppe suchen", value: state.searchQuery });
+    const form = el("form", { style: "display:flex;gap:.5rem;flex:1 1 100%", onsubmit: async e => {
+      e.preventDefault();
+      state.searchQuery = input.value.trim();
+      if (!state.searchQuery) return;
+      $("listarea").textContent = ""; $("listarea").append(el("p", { class: "status" }, "Suche …"));
+      try {
+        const { data } = await api("/groups/" + GROUP_ID + "/items/top?qmode=titleCreatorYear&limit=40&itemType=-attachment&q=" + encodeURIComponent(state.searchQuery));
+        data.forEach(it => state.items.set(it.key, it));
+        state.searchList = data.filter(isLiterature);
+      } catch (err) { showListError(err); return; }
+      renderEntries();
+    } }, input, el("button", { class: "btn", type: "submit" }, "Suchen"));
+    tb.append(form);
+    setTimeout(() => input.focus(), 0);
+  }
+}
+
+function showListError(err) {
+  $("listarea").textContent = "";
+  $("listarea").append(el("p", { class: "status error" }, err.message));
+}
+
+function renderList() { renderToolbar(); renderEntries(); }
+
+function renderEntries() {
+  const area = $("listarea");
+  area.textContent = "";
+  if (state.loading) { area.append(el("p", { class: "status" }, "Lade …")); return; }
+
+  if (state.tab === "feed") {
+    let list = state.feed;
+    if (state.filter === "comments") list = list.filter(n => n.data.itemType === "note" && isComment(n));
+    if (!list.length) { area.append(el("p", { class: "empty" }, "Noch keine Kommentare. Öffne einen Eintrag und schreib den ersten.")); return; }
+    area.append(el("ol", { class: "entries" }, list.map(feedEntry)));
+    if (state.feedStart < state.feedTotal) area.append(moreButton(() => loadFeed(true)));
+    return;
+  }
+
+  let list = state.tab === "items" ? state.newList : state.searchList;
+  if (state.tab === "items" && state.hideOwn) list = list.filter(it => !isMine(it));
+  if (state.tab === "search" && !state.searchQuery) { area.append(el("p", { class: "empty" }, "Suche nach einem Eintrag, um ihn zu kommentieren, auch wenn er schon lange in der Gruppe ist.")); return; }
+  if (!list.length) { area.append(el("p", { class: "empty" }, state.tab === "search" ? "Keine Treffer. Versuche einen anderen Suchbegriff." : "In der Gruppe gibt es noch keine Einträge.")); return; }
+  area.append(el("ol", { class: "entries" }, list.map(itemEntry)));
+  if (state.tab === "items" && state.newStart < state.newTotal) area.append(moreButton(() => loadNew(true)));
+}
+
+function moreButton(loader) {
+  const b = el("button", { class: "btn secondary", type: "button", onclick: async () => {
+    b.disabled = true; b.textContent = "Lade …";
+    try { await loader(); } catch (e) { showListError(e); return; }
+    renderEntries();
+  } }, "Ältere laden");
+  return el("div", { class: "more" }, b);
+}
+
+function itemEntry(it) {
+  const fresh = isNew(it);
+  const notes = state.notesByParent.get(it.key) || [];
+  const last = notes[0];
+  return el("li", { class: [fresh ? "is-new" : "", state.selected === it.key ? "selected" : ""].join(" ").trim() },
+    el("button", { class: "entry", type: "button", onclick: () => openDetail(it.key) },
+      el("span", { class: "title" }, itemTitle(it)),
+      el("span", { class: "meta" }, itemMeta(it)),
+      el("span", { class: "by" }, fresh ? el("span", { class: "newtag" }, "neu") : null,
+        "Hinzugefügt von ", el("strong", {}, userName(creatorOf(it))), ", " + when(it.data.dateAdded)),
+      facets(it, false),
+      last ? el("span", { class: "snippet" },
+        (notes.length === 1 ? "1 Notiz" : notes.length + " Notizen") + ", zuletzt von " + userName(creatorOf(last)) + ":\n" + noteText(last.data.note).replace(/^💬\s*/, "")) : null
+    ));
+}
+
+function feedEntry(n) {
+  const fresh = isNew(n);
+  const paperKey = paperKeyOf(n);
+  const paper = state.items.get(paperKey);
+  const anno = n.data.itemType === "annotation";
+  const kind = anno ? "PDF-Anmerkung" : (isComment(n) ? "Kommentar" : "Notiz");
+  let text = anno ? [n.data.annotationText ? "„" + n.data.annotationText + "“" : "", n.data.annotationComment || ""].filter(Boolean).join("\n") : noteText(n.data.note).replace(/^💬\s*/, "");
+  return el("li", { class: [fresh ? "is-new" : "", state.selected === paperKey ? "selected" : ""].join(" ").trim() },
+    el("button", { class: "entry", type: "button", disabled: !paperKey, onclick: () => paperKey && openDetail(paperKey) },
+      el("span", { class: "by" }, fresh ? el("span", { class: "newtag" }, "neu") : null,
+        el("strong", {}, userName(creatorOf(n))), ", " + when(n.data.dateAdded) + " ", el("span", { class: "kind" }, "(" + kind + ")")),
+      el("span", { class: "title", style: "font-size:.98rem;margin-top:.2rem" }, paperKey ? itemTitle(paper) : "Eigenständige Notiz ohne Eintrag"),
+      el("span", { class: "snippet" }, text || "(ohne Text)")
+    ));
+}
+
+/* ---------- Anzeige: Detail ---------- */
+async function openDetail(key, focus = true) {
+  state.selected = key;
+  document.body.classList.add("detail-open");
+  const d = $("detail");
+  d.classList.add("open");
+  d.textContent = "";
+  d.append(el("p", { class: "status" }, "Lade Eintrag …"));
+  renderEntries();
+  let children = [];
+  try {
+    if (!state.items.has(key)) await fetchByKeys([key]);
+    const { data } = await api("/groups/" + GROUP_ID + "/items/" + key + "/children?limit=100");
+    children = data;
+    data.forEach(c => state.items.set(c.key, c));
+    if (state.showAnno) {
+      const pdfs = data.filter(c => c.data.itemType === "attachment" && c.data.contentType === "application/pdf");
+      for (const p of pdfs) {
+        const r = await api("/groups/" + GROUP_ID + "/items/" + p.key + "/children?itemType=annotation&limit=100");
+        r.data.forEach(a => state.items.set(a.key, a));
+        children = children.concat(r.data);
+      }
+    }
+  } catch (e) {
+    d.textContent = "";
+    d.append(backButton(), el("p", { class: "status error" }, e.message));
+    return;
+  }
+  if (state.selected !== key) return;
+  renderDetail(key, children);
+  if (focus) d.focus({ preventScroll: window.innerWidth > 900 });
+  if (window.innerWidth <= 900) window.scrollTo(0, 0);
+}
+
+function backButton() {
+  return el("button", { class: "linkbtn back", type: "button", onclick: () => {
+    document.body.classList.remove("detail-open");
+    $("detail").classList.remove("open");
+    state.selected = null;
+    renderEntries();
+  } }, "Zurück zur Liste");
+}
+
+function renderDetail(key, children) {
+  const it = state.items.get(key);
+  const d = $("detail");
+  d.textContent = "";
+  const links = [];
+  if (it.links && it.links.alternate) links.push(el("a", { href: it.links.alternate.href, target: "_blank", rel: "noopener" }, "In Zotero (Web) öffnen"));
+  links.push(el("a", { href: "zotero://select/groups/" + GROUP_ID + "/items/" + key }, "In Zotero (Desktop) öffnen"));
+  if (it.data.DOI) links.push(el("a", { href: "https://doi.org/" + encodeURIComponent(it.data.DOI).replace(/%2F/g, "/"), target: "_blank", rel: "noopener" }, "DOI"));
+  else if (it.data.url && /^https?:/i.test(it.data.url)) links.push(el("a", { href: it.data.url, target: "_blank", rel: "noopener" }, "Webseite"));
+
+  const thread = children
+    .filter(c => c.data.itemType === "note" || c.data.itemType === "annotation")
+    .sort((a, b) => new Date(a.data.dateAdded) - new Date(b.data.dateAdded));
+
+  d.append(
+    backButton(),
+    el("h2", {}, itemTitle(it)),
+    el("div", { class: "meta" }, itemMeta(it)),
+    el("div", { class: "meta" }, "Hinzugefügt von " + userName(creatorOf(it)) + " am " + fmtDateTime.format(new Date(it.data.dateAdded)) + " Uhr"),
+    facets(it, true),
+    el("div", { class: "links" }, links),
+    it.data.abstractNote ? el("details", { class: "abstract" }, el("summary", {}, "Abstract anzeigen"), el("p", {}, it.data.abstractNote)) : null,
+    el("h3", {}, thread.length ? "Kommentare und Notizen (" + thread.length + ")" : "Kommentare und Notizen"),
+    thread.length ? el("ol", { class: "thread" }, thread.map(threadItem)) : el("p", { class: "empty", style: "padding:.25rem 0" }, "Noch nichts notiert."),
+    composeBox(key)
+  );
+}
+
+function threadItem(c) {
+  const anno = c.data.itemType === "annotation";
+  const head = el("div", { class: "head" }, el("strong", {}, userName(creatorOf(c))), ", " + fmtDateTime.format(new Date(c.data.dateAdded)) + " Uhr",
+    anno ? " (PDF-Anmerkung" + (c.data.annotationPageLabel ? ", S. " + c.data.annotationPageLabel : "") + ")" : (isComment(c) ? "" : " (Notiz)"));
+  const li = el("li", { class: isNew(c) ? "is-new-thread" : "" }, head);
+  if (anno) {
+    if (c.data.annotationText) {
+      const q = el("blockquote", {}, c.data.annotationText);
+      if (/^#[0-9a-f]{3,8}$/i.test(c.data.annotationColor || "")) q.style.setProperty("--q", c.data.annotationColor);
+      li.append(q);
+    }
+    if (c.data.annotationComment) li.append(el("div", { class: "body" }, c.data.annotationComment));
+  } else {
+    li.append(el("div", { class: "body" }, noteText(c.data.note).replace(/^💬\s*/, "")));
+  }
+  return li;
+}
+
+function composeBox(key) {
+  if (!state.canWrite) {
+    return el("p", { class: "hint", style: "margin-top:1rem;color:var(--muted)" }, "Dein Schlüssel hat nur Leserechte. Für Kommentare braucht er „Read/Write“ für die Gruppe.");
+  }
+  const ta = el("textarea", { id: "newcomment", placeholder: "Warum ist das Paper relevant? Was hast du mitgenommen?" });
+  const msg = el("span", { class: "hint", role: "status" }, "Wird als Notiz am Eintrag in Zotero gespeichert und für alle sichtbar.");
+  const btn = el("button", { class: "btn", type: "submit" }, "Kommentar speichern");
+  const form = el("form", { class: "compose", onsubmit: async e => {
+    e.preventDefault();
+    const text = ta.value.trim();
+    if (!text) { msg.textContent = "Schreib zuerst einen Kommentar."; ta.focus(); return; }
+    btn.disabled = true; msg.textContent = "Speichere …";
+    try {
+      const note = await saveComment(key, text);
+      ta.value = "";
+      state.items.set(note.key, note);
+      state.feed.unshift(note);
+      rebuildNoteIndex();
+      await openDetail(key, false);
+      const m = document.querySelector(".compose .hint");
+      if (m) m.textContent = "Kommentar gespeichert.";
+    } catch (err) {
+      msg.textContent = err.message; msg.classList.add("error");
+      btn.disabled = false;
+    }
+  } },
+    el("label", { for: "newcomment" }, "Dein Kommentar"),
+    ta,
+    el("div", { class: "row" }, btn, msg));
+  return form;
+}
+
+function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+async function saveComment(parentKey, text) {
+  const html = text.split(/\n\s*\n/).map(p => "<p>" + escapeHtml(p).replace(/\n/g, "<br>") + "</p>").join("");
+  const body = JSON.stringify([{
+    itemType: "note",
+    parentItem: parentKey,
+    note: html,
+    tags: [{ tag: COMMENT_TAG }],
+    collections: [],
+    relations: {}
+  }]);
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+  const { data } = await api("/groups/" + GROUP_ID + "/items", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Zotero-Write-Token": token },
+    body
+  });
+  if (data.failed && Object.keys(data.failed).length) {
+    const f = Object.values(data.failed)[0];
+    throw new ApiError("Speichern fehlgeschlagen: " + (f.message || "unbekannter Fehler"), f.code);
+  }
+  const ok = data.successful && data.successful["0"];
+  if (!ok) throw new ApiError("Speichern fehlgeschlagen: Zotero hat keine Bestätigung geschickt.", 0);
+  // Falls Zotero keine Nutzerangaben mitschickt, eigene ergänzen
+  ok.meta = ok.meta || {};
+  if (!ok.meta.createdByUser) ok.meta.createdByUser = { id: state.me.id, name: state.me.name };
+  return ok;
+}
+
+/* ---------- Anmelden ---------- */
+async function connect(key, remember) {
+  state.key = key;
+  const { data } = await api("/keys/current");
+  const groups = (data.access && data.access.groups) || {};
+  const acc = groups[GROUP_ID] || groups.all;
+  if (!acc || !acc.library) throw new ApiError("Dieser Schlüssel hat keinen Zugriff auf eure Gruppe. Lege ihn mit Gruppenrechten neu an.", 403);
+  state.canWrite = !!acc.write;
+  state.me = { id: data.userID, name: data.displayName || data.username || "" };
+  if (remember) { storeSet("localStorage", STORE_KEY, key); storeDel("sessionStorage", STORE_KEY); }
+  else { storeSet("sessionStorage", STORE_KEY, key); storeDel("localStorage", STORE_KEY); }
+
+  const visitKey = "lesekreis.lastVisit." + state.me.id;
+  const last = storeGet("localStorage", visitKey);
+  state.firstVisit = !last;
+  state.prevVisit = last ? new Date(last) : new Date(Date.now() - FIRST_VISIT_DAYS * 864e5);
+  storeSet("localStorage", visitKey, new Date().toISOString());
+}
+
+function showSetup(message) {
+  $("app").classList.add("hidden");
+  $("setup").classList.remove("hidden");
+  $("setupmsg").textContent = message || "";
+  $("keyinput").value = "";
+  $("keyinput").focus();
+}
+
+async function showApp() {
+  $("setup").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  $("whoami").textContent = "Angemeldet als " + state.me.name + (state.canWrite ? "" : " (nur lesen)");
+  await loadAll();
+}
+
+$("setupform").addEventListener("submit", async e => {
+  e.preventDefault();
+  const key = $("keyinput").value.trim();
+  if (!/^[A-Za-z0-9]{24}$/.test(key)) { $("setupmsg").textContent = "Ein Zotero-Schlüssel besteht aus 24 Buchstaben und Ziffern. Prüfe, ob er vollständig kopiert ist."; return; }
+  $("connectbtn").disabled = true; $("setupmsg").textContent = "";
+  try {
+    await connect(key, $("remember").checked);
+    await showApp();
+  } catch (err) {
+    state.key = null;
+    $("setupmsg").textContent = err.status === 403 ? "Zotero kennt diesen Schlüssel nicht oder er hat keinen Zugriff auf eure Gruppe." : err.message;
+  }
+  $("connectbtn").disabled = false;
+});
+
+$("logoutbtn").addEventListener("click", () => {
+  storeDel("localStorage", STORE_KEY); storeDel("sessionStorage", STORE_KEY);
+  Object.assign(state, { key: null, items: new Map(), newList: [], feed: [], searchList: [], selected: null });
+  document.body.classList.remove("detail-open");
+  showSetup("Du bist abgemeldet. Der Schlüssel wurde aus diesem Browser gelöscht.");
+});
+$("refreshbtn").addEventListener("click", () => loadAll());
+$("tab-items").addEventListener("click", () => setTab("items"));
+$("tab-feed").addEventListener("click", () => setTab("feed"));
+$("tab-search").addEventListener("click", () => setTab("search"));
+
+(async function start() {
+  const saved = storeGet("sessionStorage", STORE_KEY) || storeGet("localStorage", STORE_KEY);
+  if (!saved) { showSetup(); return; }
+  try {
+    await connect(saved, !!storeGet("localStorage", STORE_KEY));
+    await showApp();
+  } catch (e) {
+    if (e.status === 403) {
+      storeDel("localStorage", STORE_KEY); storeDel("sessionStorage", STORE_KEY);
+      showSetup("Der gespeicherte Schlüssel funktioniert nicht mehr. Bitte gib einen neuen ein.");
+    } else {
+      showSetup(e.message);
+    }
+  }
+})();
+</script>
+</body>
+</html>
