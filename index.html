@@ -322,7 +322,7 @@ li.is-new::before { width: 4px; }
 .dtabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--red); }
 .dtabs button:hover { color: var(--ink); }
 .dpanel { padding-top: 1rem; }
-.dpanel .abstracttext { font: 400 .97rem/1.65 var(--sans); margin: 0; max-width: 70ch; white-space: pre-line; }
+#detail .abstracttext { font: 400 .97rem/1.65 var(--sans); margin: 1.1rem 0 0; max-width: 70ch; white-space: pre-line; }
 .dfoot { color: var(--muted); font-size: .8rem; margin: 1.5rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line); }
 dl.fields { display: grid; grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr); gap: .5rem 1.25rem; margin: 0; font-size: .92rem; }
 dl.fields dt { color: var(--muted); }
@@ -419,7 +419,7 @@ const GROUP_ID = "5817220";
 const API = "https://api.zotero.org";
 const BASE = API + "/groups/" + GROUP_ID;
 const COMMENT_TAG = "Kommentar";
-const APP_VERSION = "10 (23.11.2026)";
+const APP_VERSION = "11 (23.11.2026)";
 const STORE_KEY = "lesekreis.key";
 const VIEW_KEY = "lesekreis.view";
 const FIRST_VISIT_DAYS = 14;
@@ -954,7 +954,7 @@ function renderDetail(key, children) {
   if (state.detailFor !== key) { state.detailFor = key; state.detailTab = "kommentare"; }
   state.detailChildren = children;
 
-  const links = [];
+  const links = [el("a", { class: "pill", href: "zotero://select/groups/" + GROUP_ID + "/items/" + key }, "In Zotero öffnen")];
   if (it.links && it.links.alternate) links.push(el("a", { class: "pill", href: it.links.alternate.href, target: "_blank", rel: "noopener" }, "Zotero im Web ↗"));
   if (it.data.DOI) links.push(el("a", { class: "pill", href: "https://doi.org/" + encodeURIComponent(it.data.DOI).replace(/%2F/g, "/"), target: "_blank", rel: "noopener" }, "DOI ↗"));
   else if (it.data.url && /^https?:/i.test(it.data.url)) links.push(el("a", { class: "pill", href: it.data.url, target: "_blank", rel: "noopener" }, "Webseite ↗"));
@@ -964,22 +964,18 @@ function renderDetail(key, children) {
     .sort((a, b) => new Date(a.data.dateAdded) - new Date(b.data.dateAdded));
 
   const head = el("div", { class: "dhead" },
-    el("div", { class: "dtitle" }, el("h2", {}, itemTitle(it)),
-      el("div", { class: "dactions" }, el("a", { class: "btn secondary small", href: "zotero://select/groups/" + GROUP_ID + "/items/" + key }, "In Zotero öffnen"))),
+    el("h2", {}, itemTitle(it)),
     el("div", { class: "meta" }, itemMeta(it)),
     facets(it, true),
-    links.length ? el("div", { class: "links" }, links) : null);
+    el("div", { class: "links" }, links),
+    it.data.abstractNote ? el("p", { class: "abstracttext" }, it.data.abstractNote) : null);
 
-  if (state.detailTab === "abstract" && !it.data.abstractNote) state.detailTab = "kommentare";
-  const tabs = [["kommentare", thread.length ? "Kommentare (" + thread.length + ")" : "Kommentare"]];
-  if (it.data.abstractNote) tabs.push(["abstract", "Abstract"]);
-  tabs.push(["angaben", "Angaben"]);
+  const tabs = [["kommentare", thread.length ? "Kommentare (" + thread.length + ")" : "Kommentare"], ["angaben", "Angaben"]];
   const tabbar = el("div", { class: "dtabs", role: "tablist", "aria-label": "Bereiche der Detailansicht" }, tabs.map(([k, label]) =>
     el("button", { type: "button", role: "tab", "aria-selected": String(state.detailTab === k), onclick: () => { state.detailTab = k; renderDetail(key, state.detailChildren); } }, label)));
 
   let panel;
-  if (state.detailTab === "abstract") panel = [el("p", { class: "abstracttext" }, it.data.abstractNote)];
-  else if (state.detailTab === "angaben") panel = [fieldsBlock(it)];
+  if (state.detailTab === "angaben") panel = [fieldsBlock(it)];
   else panel = [thread.length ? el("ol", { class: "thread" }, thread.map(threadItem)) : el("p", { class: "empty", style: "padding:.25rem 0" }, "Noch nichts notiert."), composeBox(key)];
 
   d.append(...[
