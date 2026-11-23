@@ -237,6 +237,113 @@ details.autotags summary { cursor: pointer; font-size: .85rem; color: var(--mute
   li.is-new::before { animation: grow .5s ease-out both; transform-origin: top; }
   @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 }
+
+/* ===== Gestaltung angeglichen an das KI-Tool-Dashboard (Version 10) ===== */
+:root { --shadow: 0 1px 2px rgba(41,55,67,.06), 0 4px 14px rgba(41,55,67,.06); --chip-bg: #eef1f3; --radius: 12px; }
+@media (prefers-color-scheme: dark) { :root { --shadow: 0 1px 2px rgba(0,0,0,.3); --chip-bg: #2c3640; } }
+body { font-size: 15px; line-height: 1.55; }
+
+/* Kopf: helle Leiste mit rotem Akzent */
+header.top { background: var(--surface); color: var(--ink); border-top: 4px solid var(--red); border-bottom: 1px solid var(--line); padding-top: .9rem; padding-bottom: .9rem; }
+header.top h1 { font: 600 1.15rem/1.2 var(--sans); display: flex; align-items: center; gap: .6rem; letter-spacing: -.01em; }
+header.top .mark { display: inline-grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 6px; background: var(--red); color: #fff; font-size: .8rem; font-weight: 600; letter-spacing: .02em; }
+header.top .who { color: var(--muted); gap: 1.25rem; }
+header.top .linkbtn { color: var(--muted); text-decoration: none; }
+header.top .linkbtn:hover { color: var(--ink); opacity: 1; }
+
+/* Begrüßungszeile */
+.summary { font: 400 1.05rem/1.5 var(--sans); color: var(--muted); padding-top: 1.4rem; padding-bottom: 1.2rem; }
+.summary .count { color: var(--mark-ink); background: var(--mark-soft); border: 0; border-radius: 999px; padding: .1rem .6rem; font-weight: 600; white-space: nowrap; }
+body.compact .summary { font-size: 1rem; }
+main { gap: 2rem; }
+
+/* Reiter in eigener Leiste */
+.navrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: .4rem; margin-bottom: 1.1rem; }
+.tabs { border: 0; background: none; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem; max-width: 100%; margin: 0; }
+.tabs button { border: 0; border-radius: 8px; padding: .5rem 1rem; margin: 0; font-size: .95rem; font-weight: 600; color: var(--muted); }
+.tabs button:hover { background: var(--chip-bg); color: var(--ink); }
+.tabs button[aria-selected="true"] { background: var(--mark-soft); color: var(--mark-ink); box-shadow: inset 0 -3px 0 var(--red); border-bottom-color: transparent; }
+.toolbar { font-size: .88rem; }
+
+/* Karten statt Trennlinien */
+ol.entries { display: grid; gap: .6rem; }
+ol.entries > li { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); overflow: hidden; transition: border-color .15s; }
+ol.entries > li:hover { border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); }
+li.card:hover .entry, .entry:hover { background: none; }
+li.selected { border-color: var(--red) !important; box-shadow: 0 0 0 1px var(--red), var(--shadow); }
+li.selected .entry { background: none; }
+.entry { padding: 1rem 1.15rem 1rem 1.3rem; }
+li.is-new::before { width: 4px; }
+.entry .row1 { display: flex; align-items: baseline; gap: .6rem; }
+.entry .title { font: 600 1.02rem/1.35 var(--sans); letter-spacing: -.005em; }
+.entry .title.small { font-size: .95rem; }
+.entry .meta { font-size: .86rem; margin-top: .1rem; }
+.entry .foot { display: block; margin-top: .6rem; font-size: .8rem; color: var(--muted); }
+.lastc { display: flex; gap: .55rem; align-items: flex-start; margin-top: .7rem; padding: .55rem .7rem; background: var(--bg); border-radius: 8px; }
+.lastc .avatar { width: 1.5rem; height: 1.5rem; font-size: .62rem; background: var(--surface); }
+.lastctext { font-size: .88rem; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.lastctext strong { font-weight: 600; }
+.newtag, .entry .newtag { background: var(--mark); color: #fff; border-radius: 3px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: .05rem .4rem; margin: 0; align-self: center; white-space: nowrap; }
+.entry.feed { display: flex; gap: .8rem; align-items: flex-start; }
+.feedbody { display: block; min-width: 0; flex: 1; }
+.entry .snippet { border-left: 0; padding-left: 0; color: var(--muted); -webkit-line-clamp: 2; margin-top: .35rem; font-size: .9rem; }
+
+/* Etiketten: ruhige Pillen mit Farbpunkt */
+.facets { margin-top: 0; }
+.chips { gap: .35rem; margin-top: .55rem; }
+.chip, .chip.coll { background: var(--chip-bg); color: var(--ink); border: 0; border-radius: 999px; padding: .12rem .65rem .12rem .55rem; font: inherit; font-size: .78rem; display: inline-flex; align-items: center; gap: .4rem; }
+.chip.coll::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--c, var(--muted)); flex: none; }
+.chip.coll:hover { text-decoration: none; background: color-mix(in srgb, var(--c, var(--muted)) 16%, var(--chip-bg)); }
+.chip.coll.sub { background: none; border: 1px solid color-mix(in srgb, var(--c, var(--line)) 45%, var(--line)); }
+.chip.coll.sub::before { width: .4rem; height: .4rem; }
+.chip.coll.sub:hover { background: var(--chip-bg); }
+.chip.tag { background: none; border: 1px solid var(--line); color: var(--muted); padding: .1rem .6rem; }
+.chip.auto { color: var(--muted); background: none; border: 1px dashed var(--line); padding: .1rem .6rem; }
+.collhead .chip.coll { font-size: .9rem; }
+.collhead .chip.coll:hover { background: var(--chip-bg); }
+
+/* Avatare */
+.avatar { flex: none; width: 2rem; height: 2rem; border-radius: 50%; background: var(--chip-bg); color: var(--ink); display: inline-grid; place-items: center; font-size: .75rem; font-weight: 600; letter-spacing: .02em; }
+
+/* Detail */
+#detail { border: 1px solid var(--line); border-top: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: clamp(1.1rem, 2.5vw, 2rem); }
+.dtitle { display: flex; align-items: flex-start; gap: 1rem; }
+.dtitle h2 { flex: 1; min-width: 0; }
+#detail h2 { font: 600 1.6rem/1.25 var(--serif); letter-spacing: -.01em; margin: 0 0 .2rem; }
+.dactions { display: flex; gap: .9rem; align-items: center; flex: none; padding-top: .3rem; }
+.btn.small { padding: .3rem .7rem; font-size: .88rem; text-decoration: none; display: inline-block; }
+#detail .meta { font-size: .9rem; }
+#detail .facets { margin: .2rem 0 0; font-size: inherit; }
+#detail .links { margin: 1rem 0 0; gap: .5rem; }
+.pill { display: inline-block; text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: .3rem .85rem; font-size: .85rem; color: var(--ink); }
+.pill:hover { border-color: var(--link); color: var(--link); }
+.dtabs { display: flex; gap: 1.5rem; border-bottom: 1px solid var(--line); margin: 1.6rem 0 0; overflow-x: auto; overflow-y: hidden; }
+.dtabs button { background: none; border: 0; padding: .55rem 0; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font-weight: 500; white-space: nowrap; font-size: .92rem; }
+.dtabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--red); }
+.dtabs button:hover { color: var(--ink); }
+.dpanel { padding-top: 1rem; }
+.dpanel .abstracttext { font: 400 .97rem/1.65 var(--sans); margin: 0; max-width: 70ch; white-space: pre-line; }
+.dfoot { color: var(--muted); font-size: .8rem; margin: 1.5rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line); }
+dl.fields { display: grid; grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr); gap: .5rem 1.25rem; margin: 0; font-size: .92rem; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 30rem) { dl.fields { grid-template-columns: minmax(0, 1fr); } dl.fields dd { margin-bottom: .4rem; } }
+
+/* Kommentare */
+ol.thread li { display: flex; gap: .8rem; padding: .9rem 0; position: relative; }
+ol.thread li.is-new { padding-left: .8rem; }
+ol.thread li.is-new::before { content: ""; position: absolute; left: 0; top: .9rem; bottom: .9rem; width: 4px; background: var(--mark); }
+.tbody { flex: 1; min-width: 0; }
+.thread .head { display: flex; flex-wrap: wrap; gap: .3rem .8rem; align-items: baseline; }
+.thread .head > span:first-child { flex: 1; }
+.thread .art { font-size: .75rem; background: var(--chip-bg); color: var(--ink); border-radius: 999px; padding: .05rem .55rem; white-space: nowrap; }
+.thread .body { font: 400 .95rem/1.6 var(--sans); }
+.thread blockquote { font: italic 400 .93rem/1.55 var(--sans); }
+.compose { background: var(--bg); border-radius: 10px; padding: .9rem 1rem; margin-top: 1rem; }
+.compose label { color: var(--ink); font-size: .9rem; }
+.compose textarea { background: var(--surface); font: 400 .95rem/1.5 var(--sans); min-height: 5rem; }
+.btn { border-radius: 8px; }
+.placeholder { font: 400 1rem/1.6 var(--sans); }
 </style>
 </head>
 <body>
@@ -271,7 +378,7 @@ details.autotags summary { cursor: pointer; font-size: .85rem; color: var(--mute
 <div id="app" class="hidden">
   <header class="top">
     <div class="wrap topinner">
-      <h1>Literatur KI-Team</h1>
+      <h1><span class="mark" aria-hidden="true">KI</span>Literatur KI-Team</h1>
       <div class="who">
         <span id="whoami"></span>
         <button class="linkbtn" id="viewbtn" type="button" aria-pressed="false">Schmale Ansicht</button>
@@ -284,11 +391,13 @@ details.autotags summary { cursor: pointer; font-size: .85rem; color: var(--mute
 
   <main>
     <section id="listcol" aria-label="Übersicht">
+      <nav class="navrow" aria-label="Hauptnavigation">
       <div class="tabs" role="tablist">
         <button role="tab" id="tab-items" aria-selected="true" aria-controls="panel">Neue Literatur</button>
         <button role="tab" id="tab-feed" aria-selected="false" aria-controls="panel">Neueste Kommentare</button>
         <button role="tab" id="tab-search" aria-selected="false" aria-controls="panel">Suchen</button>
       </div>
+      </nav>
       <div id="panel" role="tabpanel">
         <div class="toolbar" id="toolbar"></div>
         <div id="listarea"></div>
@@ -310,7 +419,7 @@ const GROUP_ID = "5817220";
 const API = "https://api.zotero.org";
 const BASE = API + "/groups/" + GROUP_ID;
 const COMMENT_TAG = "Kommentar";
-const APP_VERSION = "9 (20.11.2026)";
+const APP_VERSION = "10 (23.11.2026)";
 const STORE_KEY = "lesekreis.key";
 const VIEW_KEY = "lesekreis.view";
 const FIRST_VISIT_DAYS = 14;
@@ -453,7 +562,7 @@ function collectionPath(key) {
 }
 function itemCollections(it) {
   return (it.data.collections || [])
-    .map(k => ({ key: k, path: collectionPath(k), color: state.collColor.get(topCollection(k)) }))
+    .map(k => ({ key: k, path: collectionPath(k), color: state.collColor.get(topCollection(k)), sub: !!(state.collections.get(k) || {}).parent }))
     .filter(c => c.path)
     .sort((a, b) => a.path.localeCompare(b.path, "de"));
 }
@@ -466,10 +575,9 @@ function facets(it, withAuto) {
   const auto = withAuto ? autoTags(it) : [];
   if (!colls.length && !tags.length && !auto.length) return null;
   return el("span", { class: "facets" },
-    colls.length ? el("span", { class: "chips", "aria-label": colls.length === 1 ? "Sammlung" : "Sammlungen" }, colls.map(c => { const s = el("button", { type: "button", class: "chip coll", title: "Alle Einträge dieser Sammlung zeigen", onclick: e => { e.stopPropagation(); showCollection(c.key); } }, c.path); if (c.color) s.style.background = c.color; return s; })) : null,
-    tags.length ? el("span", { class: "chips", "aria-label": "Tags" }, tags.map(tg => el("span", { class: "chip", title: "Tag" }, tg))) : null,
-    auto.length ? el("details", { class: "autotags" }, el("summary", {}, "Automatische Tags aus dem Import (" + auto.length + ")"),
-      el("span", { class: "chips" }, auto.map(tg => el("span", { class: "chip auto" }, tg)))) : null);
+    colls.length ? el("span", { class: "chips", "aria-label": colls.length === 1 ? "Sammlung" : "Sammlungen" }, colls.map(c => { const s = el("button", { type: "button", class: "chip coll" + (c.sub ? " sub" : ""), title: "Alle Einträge dieser Sammlung zeigen", onclick: e => { e.stopPropagation(); showCollection(c.key); } }, c.path); if (c.color) s.style.setProperty("--c", c.color); return s; })) : null,
+    tags.length ? el("span", { class: "chips", "aria-label": "Tags" }, tags.map(tg => el("span", { class: "chip tag", title: "Tag" }, tg))) : null,
+    null);
 }
 function isLiterature(it) { return !["note", "attachment", "annotation"].includes(it.data.itemType); }
 
@@ -638,9 +746,9 @@ function renderToolbar() {
   tb.textContent = "";
   if (state.tab === "collection") {
     const c = state.collections.get(state.collKey);
-    const chip = el("span", { class: "chip coll" }, collectionPath(state.collKey) || (c ? c.name : "Sammlung"));
+    const chip = el("span", { class: "chip coll" + (c && c.parent ? " sub" : "") }, collectionPath(state.collKey) || (c ? c.name : "Sammlung"));
     const color = state.collColor.get(topCollection(state.collKey));
-    if (color) chip.style.background = color;
+    if (color) chip.style.setProperty("--c", color);
     const subs = [...state.collections.values()].some(x => x.parent === state.collKey);
     tb.append(el("div", { class: "collhead" },
       el("span", {}, "Sammlung"), chip,
@@ -725,20 +833,37 @@ function moreButton(loader) {
   return el("div", { class: "more" }, b);
 }
 
+function initials(name) {
+  const parts = String(name || "?").replace(/\(.*\)/, "").trim().split(/\s+/).filter(Boolean);
+  return ((parts[0] || "?")[0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+}
+function avatar(it) { return el("span", { class: "avatar", "aria-hidden": "true" }, initials(userName(creatorOf(it)))); }
+function childText(n) {
+  if (n.data.itemType === "annotation") return [n.data.annotationText ? "„" + n.data.annotationText + "“" : "", n.data.annotationComment || ""].filter(Boolean).join("\n");
+  return noteText(n.data.note).replace(/^💬\s*/, "");
+}
+function childKind(n) {
+  if (n.data.itemType === "annotation") return "PDF-Anmerkung" + (n.data.annotationPageLabel ? ", S. " + n.data.annotationPageLabel : "");
+  return isComment(n) ? "Kommentar" : "Notiz";
+}
+
 function itemEntry(it) {
   const fresh = isNew(it);
   const notes = state.notesByParent.get(it.key) || [];
   const last = notes[0];
+  const foot = ["Hinzugefügt von " + userName(creatorOf(it)) + ", " + when(it.data.dateAdded)];
+  if (notes.length) foot.push((notes.length === 1 ? "1 Notiz" : notes.length + " Notizen") + ", zuletzt " + when(last.data.dateAdded));
   return el("li", { class: ["card", fresh ? "is-new" : "", state.selected === it.key ? "selected" : ""].join(" ").trim(),
       onclick: e => { if (!e.target.closest("button.chip")) openDetail(it.key); } },
     el("div", { class: "entry" },
-      el("button", { class: "title titlebtn", type: "button" }, itemTitle(it)),
+      el("span", { class: "row1" },
+        el("button", { class: "title titlebtn", type: "button" }, itemTitle(it)),
+        fresh ? el("span", { class: "newtag" }, "neu") : null),
       el("span", { class: "meta" }, itemMeta(it)),
-      el("span", { class: "by" }, fresh ? el("span", { class: "newtag" }, "neu") : null,
-        "Hinzugefügt von ", el("strong", {}, userName(creatorOf(it))), ", " + when(it.data.dateAdded)),
       facets(it, false),
-      last ? el("span", { class: "snippet" },
-        (notes.length === 1 ? "1 Notiz" : notes.length + " Notizen") + ", zuletzt von " + userName(creatorOf(last)) + ":\n" + noteText(last.data.note).replace(/^💬\s*/, "")) : null
+      last ? el("span", { class: "lastc" }, avatar(last),
+        el("span", { class: "lastctext" }, el("strong", {}, userName(creatorOf(last)) + ": "), childText(last))) : null,
+      el("span", { class: "foot" }, foot.join("  ·  "))
     ));
 }
 
@@ -746,16 +871,13 @@ function feedEntry(n) {
   const fresh = isNew(n);
   const paperKey = paperKeyOf(n);
   const paper = state.items.get(paperKey);
-  const anno = n.data.itemType === "annotation";
-  const kind = anno ? "PDF-Anmerkung" : (isComment(n) ? "Kommentar" : "Notiz");
-  let text = anno ? [n.data.annotationText ? "„" + n.data.annotationText + "“" : "", n.data.annotationComment || ""].filter(Boolean).join("\n") : noteText(n.data.note).replace(/^💬\s*/, "");
-  return el("li", { class: [fresh ? "is-new" : "", state.selected === paperKey ? "selected" : ""].join(" ").trim() },
-    el("button", { class: "entry", type: "button", disabled: !paperKey, onclick: () => paperKey && openDetail(paperKey) },
-      el("span", { class: "by" }, fresh ? el("span", { class: "newtag" }, "neu") : null,
-        el("strong", {}, userName(creatorOf(n))), ", " + when(n.data.dateAdded) + " ", el("span", { class: "kind" }, "(" + kind + ")")),
-      el("span", { class: "title", style: "font-size:.98rem;margin-top:.2rem" }, paperKey ? itemTitle(paper) : "Eigenständige Notiz ohne Eintrag"),
-      el("span", { class: "snippet" }, text || "(ohne Text)")
-    ));
+  return el("li", { class: ["card", fresh ? "is-new" : "", state.selected === paperKey ? "selected" : ""].join(" ").trim() },
+    el("button", { class: "entry feed", type: "button", disabled: !paperKey, onclick: () => paperKey && openDetail(paperKey) },
+      avatar(n),
+      el("span", { class: "feedbody" },
+        el("span", { class: "row1" }, el("span", { class: "title small" }, paperKey ? itemTitle(paper) : "Eigenständige Notiz ohne Eintrag"), fresh ? el("span", { class: "newtag" }, "neu") : null),
+        el("span", { class: "meta" }, userName(creatorOf(n)) + ", " + when(n.data.dateAdded) + "  ·  " + childKind(n)),
+        el("span", { class: "snippet" }, childText(n) || "(ohne Text)"))));
 }
 
 /* ---------- Anzeige: Detail ---------- */
@@ -801,50 +923,91 @@ function backButton() {
   } }, "Zurück zur Liste");
 }
 
+const ITEM_TYPES = {
+  journalArticle: "Zeitschriftenartikel", book: "Buch", bookSection: "Buchkapitel", conferencePaper: "Konferenzbeitrag",
+  report: "Bericht", thesis: "Abschlussarbeit", webpage: "Webseite", preprint: "Preprint", blogPost: "Blogbeitrag",
+  magazineArticle: "Magazinartikel", newspaperArticle: "Zeitungsartikel", document: "Dokument", presentation: "Präsentation",
+  videoRecording: "Video", podcast: "Podcast", computerProgram: "Software", dataset: "Datensatz"
+};
+function creatorsText(it) {
+  return (it.data.creators || []).map(c => c.name || [c.firstName, c.lastName].filter(Boolean).join(" ")).filter(Boolean).join("; ");
+}
+function fieldsBlock(it) {
+  const rows = [];
+  const add = (label, value) => { if (value) rows.push(el("dt", {}, label), el("dd", {}, value)); };
+  add("Art", ITEM_TYPES[it.data.itemType] || it.data.itemType);
+  add("Autor:innen", creatorsText(it));
+  add("Jahr", itemYear(it));
+  add("Erschienen in", it.data.publicationTitle || it.data.bookTitle || it.data.proceedingsTitle || it.data.websiteTitle || "");
+  add("Verlag", it.data.publisher || "");
+  add("DOI", it.data.DOI || "");
+  if (it.data.url && /^https?:/i.test(it.data.url)) add("URL", el("a", { href: it.data.url, target: "_blank", rel: "noopener" }, it.data.url));
+  const auto = autoTags(it);
+  if (auto.length) add("Automatische Tags", el("span", { class: "chips", style: "margin-top:0" }, auto.map(tg => el("span", { class: "chip auto" }, tg))));
+  return rows.length ? el("dl", { class: "fields" }, rows) : el("p", { class: "empty" }, "Keine weiteren Angaben in Zotero.");
+}
+
 function renderDetail(key, children) {
   const it = state.items.get(key);
   const d = $("detail");
   d.textContent = "";
+  if (state.detailFor !== key) { state.detailFor = key; state.detailTab = "kommentare"; }
+  state.detailChildren = children;
+
   const links = [];
-  if (it.links && it.links.alternate) links.push(el("a", { href: it.links.alternate.href, target: "_blank", rel: "noopener" }, "In Zotero (Web) öffnen"));
-  links.push(el("a", { href: "zotero://select/groups/" + GROUP_ID + "/items/" + key }, "In Zotero (Desktop) öffnen"));
-  if (it.data.DOI) links.push(el("a", { href: "https://doi.org/" + encodeURIComponent(it.data.DOI).replace(/%2F/g, "/"), target: "_blank", rel: "noopener" }, "DOI"));
-  else if (it.data.url && /^https?:/i.test(it.data.url)) links.push(el("a", { href: it.data.url, target: "_blank", rel: "noopener" }, "Webseite"));
+  if (it.links && it.links.alternate) links.push(el("a", { class: "pill", href: it.links.alternate.href, target: "_blank", rel: "noopener" }, "Zotero im Web ↗"));
+  if (it.data.DOI) links.push(el("a", { class: "pill", href: "https://doi.org/" + encodeURIComponent(it.data.DOI).replace(/%2F/g, "/"), target: "_blank", rel: "noopener" }, "DOI ↗"));
+  else if (it.data.url && /^https?:/i.test(it.data.url)) links.push(el("a", { class: "pill", href: it.data.url, target: "_blank", rel: "noopener" }, "Webseite ↗"));
 
   const thread = children
     .filter(c => c.data.itemType === "note" || c.data.itemType === "annotation")
     .sort((a, b) => new Date(a.data.dateAdded) - new Date(b.data.dateAdded));
 
-  d.append(...[
-    backButton(),
-    el("h2", {}, itemTitle(it)),
+  const head = el("div", { class: "dhead" },
+    el("div", { class: "dtitle" }, el("h2", {}, itemTitle(it)),
+      el("div", { class: "dactions" }, el("a", { class: "btn secondary small", href: "zotero://select/groups/" + GROUP_ID + "/items/" + key }, "In Zotero öffnen"))),
     el("div", { class: "meta" }, itemMeta(it)),
-    el("div", { class: "meta" }, "Hinzugefügt von " + userName(creatorOf(it)) + " am " + fmtDateTime.format(new Date(it.data.dateAdded)) + " Uhr"),
     facets(it, true),
-    el("div", { class: "links" }, links),
-    it.data.abstractNote ? el("details", { class: "abstract" }, el("summary", {}, "Abstract anzeigen"), el("p", {}, it.data.abstractNote)) : null,
-    el("h3", {}, thread.length ? "Kommentare und Notizen (" + thread.length + ")" : "Kommentare und Notizen"),
-    thread.length ? el("ol", { class: "thread" }, thread.map(threadItem)) : el("p", { class: "empty", style: "padding:.25rem 0" }, "Noch nichts notiert."),
-    composeBox(key)
+    links.length ? el("div", { class: "links" }, links) : null);
+
+  if (state.detailTab === "abstract" && !it.data.abstractNote) state.detailTab = "kommentare";
+  const tabs = [["kommentare", thread.length ? "Kommentare (" + thread.length + ")" : "Kommentare"]];
+  if (it.data.abstractNote) tabs.push(["abstract", "Abstract"]);
+  tabs.push(["angaben", "Angaben"]);
+  const tabbar = el("div", { class: "dtabs", role: "tablist", "aria-label": "Bereiche der Detailansicht" }, tabs.map(([k, label]) =>
+    el("button", { type: "button", role: "tab", "aria-selected": String(state.detailTab === k), onclick: () => { state.detailTab = k; renderDetail(key, state.detailChildren); } }, label)));
+
+  let panel;
+  if (state.detailTab === "abstract") panel = [el("p", { class: "abstracttext" }, it.data.abstractNote)];
+  else if (state.detailTab === "angaben") panel = [fieldsBlock(it)];
+  else panel = [thread.length ? el("ol", { class: "thread" }, thread.map(threadItem)) : el("p", { class: "empty", style: "padding:.25rem 0" }, "Noch nichts notiert."), composeBox(key)];
+
+  d.append(...[
+    backButton(), head, tabbar,
+    el("div", { class: "dpanel", role: "tabpanel" }, panel),
+    el("p", { class: "dfoot" }, "Hinzugefügt von " + userName(creatorOf(it)) + " am " + fmtDateTime.format(new Date(it.data.dateAdded)) + " Uhr.")
   ].filter(Boolean));
 }
 
 function threadItem(c) {
   const anno = c.data.itemType === "annotation";
-  const head = el("div", { class: "head" }, el("strong", {}, userName(creatorOf(c))), ", " + fmtDateTime.format(new Date(c.data.dateAdded)) + " Uhr",
-    anno ? " (PDF-Anmerkung" + (c.data.annotationPageLabel ? ", S. " + c.data.annotationPageLabel : "") + ")" : (isComment(c) ? "" : " (Notiz)"));
-  const li = el("li", { class: isNew(c) ? "is-new-thread" : "" }, head);
+  const body = [];
   if (anno) {
     if (c.data.annotationText) {
       const q = el("blockquote", {}, c.data.annotationText);
       if (/^#[0-9a-f]{3,8}$/i.test(c.data.annotationColor || "")) q.style.setProperty("--q", c.data.annotationColor);
-      li.append(q);
+      body.push(q);
     }
-    if (c.data.annotationComment) li.append(el("div", { class: "body" }, c.data.annotationComment));
+    if (c.data.annotationComment) body.push(el("div", { class: "body" }, c.data.annotationComment));
   } else {
-    li.append(el("div", { class: "body" }, noteText(c.data.note).replace(/^💬\s*/, "")));
+    body.push(el("div", { class: "body" }, noteText(c.data.note).replace(/^💬\s*/, "")));
   }
-  return li;
+  return el("li", { class: isNew(c) ? "is-new" : null },
+    avatar(c),
+    el("div", { class: "tbody" },
+      el("div", { class: "head" }, el("span", {}, el("strong", {}, userName(creatorOf(c))), "  " + fmtDateTime.format(new Date(c.data.dateAdded)) + " Uhr"),
+        el("span", { class: "art" }, childKind(c))),
+      body));
 }
 
 function composeBox(key) {
